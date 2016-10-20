@@ -75,6 +75,37 @@ if not probes:
     sys.exit(1)
 
 
+# enable (whitelist) disable (blacklist) management
+# check if there is a blacklist/whitelist
+disabled_list = config.get_disabled_list()
+enabled_list = config.get_enabled_list()
+
+if config.check_error_list():
+    log.error("Enabled and disabled lists are both set, only one is permitted")
+    sys.exit(1)
+
+if enabled_list:
+    allowed_probes = []
+    # add only enabled probes
+    for p in probes:
+        if p.plugin_name in enabled_list:
+            allowed_probes.append(p)
+    probes = allowed_probes
+
+if disabled_list:
+    allowed_probes = []
+    # remove disabled probes
+    for p in probes:
+        if p.plugin_name not in disabled_list:
+            allowed_probes.append(p)
+    probes = allowed_probes
+
+# check if blacklist overkill
+if not probes:
+    log.error("No probe left, all is disabled")
+    sys.exit(1)
+
+
 queues = []
 for p in probes:
     # display successfully loaded plugin
